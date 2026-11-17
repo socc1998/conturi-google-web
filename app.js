@@ -35,6 +35,10 @@ function h(tag, props, ...kids) {
   return e;
 }
 
+const clean = (a) => a.flat().filter((x) => x != null && x !== false);
+function fill(el, ...a) { el.replaceChildren(...clean(a)); }
+function add(el, ...a) { el.append(...clean(a)); }
+
 function sel(options, value, onchange) {
   const s = h('select', { onchange: (e) => onchange(e.target.value) });
   for (const [v, label] of options) s.append(h('option', { value: v, selected: v === value }, label));
@@ -302,7 +306,7 @@ function renderSide() {
   const side = $('#side');
   const nav = (key, label) => h('button', { class: S.tab === key ? 'on' : '', onclick: () => showTab(key) }, label);
   const disconnected = S.accounts.filter((a) => !hasToken(a));
-  side.replaceChildren(
+  fill(side,
     h('div', { class: 'brand' }, 'Conturi Google'),
     h('div', { class: 'nav' }, nav('email', 'Email'), nav('drive', 'Drive'), nav('accounts', 'Conturi')),
     h('div', { class: 'sidehead' }, 'Conturi'),
@@ -402,7 +406,7 @@ function buildEmail(m) {
   });
   MAIL.listEl = h('div', { class: 'list' });
   MAIL.paneEl = h('div', { class: 'pane' });
-  m.append(
+  add(m,
     h('div', { class: 'top' },
       h('h1', {}, 'Email'),
       h('div', { class: 'grow' }, search),
@@ -735,7 +739,7 @@ function buildDrive(m) {
   DRV.bodyEl = h('div', { class: 'tablewrap' });
   const fileInput = h('input', { type: 'file', multiple: true, style: 'display:none', onchange: (e) => { uploadFiles([...e.target.files]); e.target.value = ''; } });
 
-  m.append(
+  add(m,
     h('div', { class: 'top' },
       h('h1', {}, 'Drive'),
       h('div', { class: 'grow' }, search),
