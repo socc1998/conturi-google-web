@@ -213,7 +213,7 @@ async function addAccount() {
   }
 }
 
-async function connect(email) {
+async function connect(email, quiet) {
   try {
     const r = await requestToken(email, '');
     const p = await http(GM + '/profile', r.access_token);
@@ -225,9 +225,24 @@ async function connect(email) {
     renderSide();
     return true;
   } catch (e) {
-    toast(e.message);
+    if (!quiet) toast(e.message);
     return false;
   }
+}
+
+// La deschiderea paginii incearca sa conecteze singur conturile (fara intrebari, daca ai
+// dat deja permisiunile). Daca browserul blocheaza ferestrele pop-up, se opreste in liniste
+// si ramane butonul „Conecteaza toate”.
+async function autoConnect() {
+  if (clientIdMissing() || !S.accounts.length) return;
+  for (let i = 0; i < 50 && !(window.google && google.accounts && google.accounts.oauth2); i++) {
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  for (const a of S.accounts) {
+    if (hasToken(a)) continue;
+    if (!(await connect(a, true))) break;
+  }
+  showTab(S.tab);
 }
 
 async function connectAll() {
@@ -969,3 +984,4 @@ function buildAccounts(m) {
 
 renderSide();
 showTab('email');
+autoConnect();
