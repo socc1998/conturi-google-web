@@ -67,6 +67,7 @@ input[type=search]{width:100%}
 .mh h2{margin:0 0 6px;font-size:20px;font-weight:600}
 .mh .meta{color:var(--muted);font-size:13px;line-height:1.6}
 .actions{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+.body a{color:var(--accent);text-decoration:underline}
 .body{white-space:pre-wrap;word-wrap:break-word;font:inherit;margin:16px 0 0;padding-top:16px;border-top:1px solid var(--line)}
 .filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel)}
 .filters label.chk{display:flex;gap:6px;align-items:center;font-size:13px;color:var(--muted)}

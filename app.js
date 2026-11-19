@@ -473,15 +473,61 @@ function bodyOf(payload) {
     }
     (p.parts || []).forEach(walk);
   })(payload);
-  let text = plain;
-  if (!text.trim() && html) {
-    const d = new DOMParser().parseFromString(html, 'text/html');
-    d.querySelectorAll('script,style,head').forEach((n) => n.remove());
-    d.querySelectorAll('br').forEach((b) => b.replaceWith('\n'));
-    d.querySelectorAll('p,div,tr,li,h1,h2,h3').forEach((n) => n.append('\n'));
-    text = (d.body ? d.body.textContent : '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  // Textele legaturilor din varianta HTML (ex. „004 - SOM”), folosite si cand mesajul are varianta text simplu
+  const labels = {};
+  let doc = null;
+  if (html) {
+    doc = new DOMParser().parseFromString(html, 'text/html');
+    doc.querySelectorAll('a[href]').forEach((a) => {
+      const href = a.getAttribute('href') || '';
+      const txt = a.textContent.replace(/\s+/g, ' ').trim();
+      if (/^https?:\/\//i.test(href) && txt && txt.length < 120 && !/^https?:\/\//i.test(txt)) labels[normUrl(href)] = txt;
+    });
   }
-  return { text: text.trim(), attachments };
+  let text = plain;
+  if (!text.trim() && doc) {
+    doc.querySelectorAll('script,style,head').forEach((n) => n.remove());
+    doc.querySelectorAll('a[href]').forEach((a) => {
+      const href = a.getAttribute('href') || '';
+      if (/^https?:\/\//i.test(href)) a.replaceWith(`<${href}>`);
+    });
+    doc.querySelectorAll('br').forEach((b) => b.replaceWith('\n'));
+    doc.querySelectorAll('p,div,tr,li,h1,h2,h3').forEach((n) => n.append('\n'));
+    text = (doc.body ? doc.body.textContent : '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+  return { text: text.trim(), attachments, labels };
+}
+
+function normUrl(u) { return String(u).trim().replace(/\/+$/, ''); }
+
+function shortUrl(u) {
+  try {
+    const x = new URL(u);
+    return x.hostname.replace(/^www\./, '') + (x.pathname.length > 1 || x.search ? '/…' : '');
+  } catch (e) { return u; }
+}
+
+// Transforma adresele din text in legaturi scurte, pe care se poate apasa.
+function linkify(text, labels) {
+  const out = [];
+  let last = 0;
+  const re = /<?https?:\/\/[^\s<>"]+>?/g;
+  let m;
+  while ((m = re.exec(text))) {
+    let u = m[0];
+    let tail = '';
+    if (u.startsWith('<')) u = u.slice(1);
+    if (u.endsWith('>')) u = u.slice(0, -1);
+    else { const mm = u.match(/[.,;:!?)\]]+$/); if (mm) { tail = mm[0]; u = u.slice(0, -tail.length); } }
+    out.push(text.slice(last, m.index));
+    out.push(h('a', {
+      href: u, target: '_blank', rel: 'noopener noreferrer', title: u,
+    }, (labels && labels[normUrl(u)]) || shortUrl(u)));
+    if (tail) out.push(tail);
+    last = m.index + m[0].length;
+  }
+  out.push(text.slice(last));
+  return out;
 }
 
 async function openMessage(msg) {
@@ -494,7 +540,7 @@ async function openMessage(msg) {
     const b = bodyOf(f.payload);
     if (!S.opened || S.opened.msg.id !== msg.id) return;
     S.opened = {
-      msg, loading: false, text: b.text, attachments: b.attachments,
+      msg, loading: false, text: b.text, labels: b.labels, attachments: b.attachments,
       to: hd['to'] || '', cc: hd['cc'] || '', replyTo: hd['reply-to'] || '',
       messageId: hd['message-id'] || '', references: hd['references'] || '',
     };
@@ -532,7 +578,7 @@ function paintPane() {
       h('button', { class: 'btn', onclick: () => archiveMsg(m) }, 'Arhivează'),
       h('button', { class: 'btn dan', onclick: () => trashMsg(m) }, 'Mută în coș'),
       h('a', { class: 'btn', style: 'text-decoration:none', target: '_blank', rel: 'noopener', href: `https://mail.google.com/mail/u/${enc(m.account)}/#all/${m.threadId}` }, 'Deschide în Gmail')),
-    h('pre', { class: 'body' }, o.text || '(mesaj fără text)'));
+    h('pre', { class: 'body' }, o.text ? linkify(o.text, o.labels) : '(mesaj fără text)'));
 }
 
 function dropFromInbox(m) {
