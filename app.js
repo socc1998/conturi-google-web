@@ -651,6 +651,28 @@ const TYPES = {
 const OWNERS = [['any', 'Proprietar: oricare'], ['mine', 'Ale mele'], ['shared', 'Partajate cu mine']];
 const WHENS = [['any', 'Oricând'], ['7', 'Ultimele 7 zile'], ['30', 'Ultimele 30 de zile'], ['365', 'Ultimul an']];
 
+const FILE_ICONS = {"folder": {"c": "#5F6368", "p": "M3,6a2,2 0 0 1 2,-2h4.2l2,2H19a2,2 0 0 1 2,2v9a2,2 0 0 1 -2,2H5a2,2 0 0 1 -2,-2z", "f": null, "g": null, "e": false}, "doc": {"c": "#4285F4", "p": "M6,2h8l6,6v12a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V4a2,2 0 0 1 2,-2z", "f": "M14,2v4a2,2 0 0 0 2,2h4z", "g": "M8,12h8v1.6H8z M8,15.2h8v1.6H8z M8,18.4h4.5v1.6H8z", "e": false}, "sheet": {"c": "#0F9D58", "p": "M6,2h8l6,6v12a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V4a2,2 0 0 1 2,-2z", "f": "M14,2v4a2,2 0 0 0 2,2h4z", "g": "M8,11h8v8H8z M9.2,12.2v2.1h2.2v-2.1z M12.6,12.2v2.1h2.2v-2.1z M9.2,15.5v2.3h2.2v-2.3z M12.6,15.5v2.3h2.2v-2.3z", "e": true}, "slides": {"c": "#F4B400", "p": "M6,2h8l6,6v12a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V4a2,2 0 0 1 2,-2z", "f": "M14,2v4a2,2 0 0 0 2,2h4z", "g": "M8,11h8v8H8z M9.3,12.3v5.4h5.4v-5.4z", "e": true}, "form": {"c": "#7248B9", "p": "M6,2h8l6,6v12a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V4a2,2 0 0 1 2,-2z", "f": "M14,2v4a2,2 0 0 0 2,2h4z", "g": "M8,11.4h1.6v1.6H8z M11,11.4h5v1.6h-5z M8,14.6h1.6v1.6H8z M11,14.6h5v1.6h-5z M8,17.8h1.6v1.6H8z M11,17.8h5v1.6h-5z", "e": false}, "pdf": {"c": "#DB4437", "p": "M6,2h8l6,6v12a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V4a2,2 0 0 1 2,-2z", "f": "M14,2v4a2,2 0 0 0 2,2h4z", "g": "M8,11.6h8v1.6H8z M8,14.8h8v1.6H8z M8,18h4.5v1.6H8z", "e": false}, "image": {"c": "#DB4437", "p": "M6,2h8l6,6v12a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V4a2,2 0 0 1 2,-2z", "f": "M14,2v4a2,2 0 0 0 2,2h4z", "g": "M8,19l3,-4.2l2.2,2.8l1.4,-1.8l2.4,3.2z M9.6,11.4a1.3,1.3 0 1 0 0.01,0z", "e": false}, "av": {"c": "#DB4437", "p": "M6,2h8l6,6v12a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V4a2,2 0 0 1 2,-2z", "f": "M14,2v4a2,2 0 0 0 2,2h4z", "g": "M10,11.2l5.6,3.6l-5.6,3.6z", "e": false}, "other": {"c": "#8A9099", "p": "M6,2h8l6,6v12a2,2 0 0 1 -2,2H6a2,2 0 0 1 -2,-2V4a2,2 0 0 1 2,-2z", "f": "M14,2v4a2,2 0 0 0 2,2h4z", "g": "M8,12h8v1.6H8z M8,15.2h8v1.6H8z M8,18.4h4.5v1.6H8z", "e": false}};
+
+function fileIcon(kind) {
+  const v = FILE_ICONS[kind] || FILE_ICONS.other;
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (d, fill, extra) => {
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', d); p.setAttribute('fill', fill);
+    if (extra) for (const [a, b] of Object.entries(extra)) p.setAttribute(a, b);
+    return p;
+  };
+  const s = document.createElementNS(NS, 'svg');
+  s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('width', '28'); s.setAttribute('height', '28');
+  s.setAttribute('aria-hidden', 'true');
+  s.append(mk(v.p, v.c));
+  if (v.f) s.append(mk(v.f, '#fff', { 'fill-opacity': '.35' }));
+  if (v.g) s.append(mk(v.g, '#fff', v.e ? { 'fill-rule': 'evenodd' } : null));
+  const w = document.createElement('div');
+  w.className = 'ic'; w.title = kind; w.append(s);
+  return w;
+}
+
 function kindOf(mime) {
   mime = mime || '';
   if (mime === FOLDER) return ['folder', 'DIR'];
@@ -802,7 +824,7 @@ function paintDrive() {
     return;
   }
   const rows = d.items.map((f) => {
-    const [kind, tag] = kindOf(f.mimeType);
+    const [kind] = kindOf(f.mimeType);
     const isDir = f.mimeType === FOLDER;
     const owner = f.owners && f.owners[0];
     const who = f.ownedByMe ? 'Eu' : owner ? (owner.displayName || owner.emailAddress) : '';
@@ -814,7 +836,7 @@ function paintDrive() {
       ['Mută în coș', () => trashFile(f)],
     ]));
     return h('tr', { class: 'f' },
-      h('td', {}, h('div', { class: 'nm' }, h('div', { class: `ic ${kind}` }, tag),
+      h('td', {}, h('div', { class: 'nm' }, fileIcon(kind),
         h('div', { class: 't', onclick: () => (isDir ? enterFolder(f) : window.open(f.webViewLink, '_blank', 'noopener')) }, f.name))),
       h('td', { class: 'mut' }, f.accounts.map((a) => h('div', { class: `tx${accIdx(a)}` }, a))),
       h('td', { class: 'mut' }, f.ownedByMe ? 'Eu' : who ? 'Partajat de ' + who : ''),

@@ -80,11 +80,7 @@ tr.f:hover{background:var(--hover)}
 .nm{display:flex;align-items:center;gap:10px;min-width:0}
 .nm .t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 .nm .t:hover{text-decoration:underline}
-.ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex:none;background:var(--hover);color:var(--muted)}
-.ic.folder{background:var(--sel);color:var(--accent)} .ic.doc{background:#dbe8ff;color:#1a47a8} .ic.sheet{background:#d9f2e0;color:#14602b}
-.ic.slides{background:#ffe9c7;color:#8a4b00} .ic.form{background:#ece0ff;color:#4b2a99} .ic.pdf{background:#ffd9d6;color:#9b1c1c}
-.ic.image{background:#d6f1f4;color:#0b5560} .ic.av{background:#f3d9f7;color:#6a1b7a}
-@media (prefers-color-scheme: dark){ .ic.doc,.ic.sheet,.ic.slides,.ic.form,.ic.pdf,.ic.image,.ic.av{background:var(--hover);color:var(--text)} }
+.ic{width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex:none}
 td.mut{color:var(--muted);font-size:13px;white-space:nowrap}
 .also{font-size:11px;color:var(--muted)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#202124;color:#fff;padding:10px 16px;border-radius:10px;max-width:80vw;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
